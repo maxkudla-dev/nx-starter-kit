@@ -1,0 +1,14 @@
+{
+  "name": "nx-starter-kit",
+  "version": "0.0.0",
+  "private": true,
+  "engines": {
+    "node": ">=22"
+  },
+  "scripts": {
+    "nx": "nx"
+  },
+  "devDependencies": {
+    "nx": "22.3.3"
+  }
+}

@@ -1,0 +1,37 @@
+service: api
+frameworkVersion: '3'
+
+provider:
+  name: aws
+  runtime: nodejs22.x
+  region: us-east-1
+  stage: ${opt:stage, 'dev'}
+  memorySize: 256
+  timeout: 10
+  httpApi:
+    payload: '2.0'
+  environment:
+    NODE_OPTIONS: --enable-source-maps
+
+plugins:
+  - serverless-offline
+
+functions:
+  graphql:
+    handler: dist/handler.handler
+    events:
+      - httpApi:
+          path: /graphql
+          method: POST
+      - httpApi:
+          path: /graphql
+          method: GET
+
+package:
+  patterns:
+    - dist/**
+    - node_modules/**
+    - '!src/**'
+    - '!**/*.ts'
+    - '!**/*.tsx'
+    - '!**/*.map'
