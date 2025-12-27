@@ -1,0 +1,3 @@
+[submodule "libs/apollo-auth"]
+	path = libs/apollo-auth
+	url = ../nx-apollo-auth-library.git

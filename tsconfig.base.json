@@ -8,6 +8,10 @@
     "forceConsistentCasingInFileNames": true,
     "skipLibCheck": true,
     "resolveJsonModule": true,
-    "sourceMap": true
+    "sourceMap": true,
+    "paths": {
+      "@nx-apollo-auth-library": ["libs/apollo-auth/src/index.ts"]
+    }
+
   }
 }
