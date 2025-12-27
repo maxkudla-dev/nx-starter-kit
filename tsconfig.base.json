@@ -10,7 +10,9 @@
     "resolveJsonModule": true,
     "sourceMap": true,
     "paths": {
-      "@nx-apollo-auth-library": ["libs/apollo-auth/src/index.ts"]
+      "@nx-apollo-auth-library": ["libs/apollo-auth/src/index.ts"],
+      "@nx-utils-library": ["libs/utils/src/index.ts"],
+      "@nx-utils-library/*": ["libs/utils/src/*"]
     }
 
   }
