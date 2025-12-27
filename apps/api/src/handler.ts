@@ -1,8 +1,7 @@
+import 'reflect-metadata';
+
 import { ApolloServer } from '@apollo/server';
-import {
-  handlers,
-  startServerAndCreateLambdaHandler,
-} from '@as-integrations/aws-lambda';
+import { startServerAndCreateLambdaHandler } from '@as-integrations/aws-lambda';
 
 import { resolvers } from './graphql/resolvers';
 import { typeDefs } from './graphql/schema';
@@ -14,5 +13,11 @@ const server = new ApolloServer({
 
 export const handler = startServerAndCreateLambdaHandler(
   server,
-  handlers.createAPIGatewayProxyEventV2RequestHandler()
+  {
+    context: async () => ({
+      getDataSource: async () => {
+        throw new Error('Auth data source is not configured.');
+      },
+    }),
+  }
 );
