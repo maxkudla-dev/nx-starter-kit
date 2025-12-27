@@ -5,7 +5,8 @@ import { config as loadEnv } from 'dotenv';
 import { DataSource } from 'typeorm';
 import type { PostgresConnectionOptions } from 'typeorm/driver/postgres/PostgresConnectionOptions';
 
-import { Account, Profile } from '../../../libs/apollo-auth/src';
+import { Account } from '../../../libs/apollo-auth/src/entities/account';
+import { Profile } from '../../../libs/apollo-auth/src/entities/profile';
 
 const loadEnvFiles = () => {
   const root = process.cwd();
@@ -33,11 +34,17 @@ const getRequiredEnv = (name: string) => {
 };
 
 const buildDataSource = () => {
+  const root = process.cwd();
   const url = process.env.DATABASE_URL;
   const sslEnabled = parseBoolean(process.env.DATABASE_SSL);
   const rejectUnauthorized = parseBoolean(process.env.DATABASE_SSL_REJECT_UNAUTHORIZED, true);
   const ssl = sslEnabled ? { rejectUnauthorized } : undefined;
   const schema = process.env.DATABASE_SCHEMA ?? 'public';
+  const migrationsDir = process.env.DATABASE_MIGRATIONS_DIR ?? 'src/migrations';
+  const migrationsPath = path.isAbsolute(migrationsDir)
+    ? migrationsDir
+    : path.join(root, migrationsDir);
+  const migrations = [path.join(migrationsPath, '*.{ts,js}')];
 
   const entities =
     [Account, Profile] as unknown as NonNullable<PostgresConnectionOptions['entities']>;
@@ -45,6 +52,7 @@ const buildDataSource = () => {
     type: 'postgres',
     entities,
     schema,
+    migrations,
     synchronize: parseBoolean(process.env.DATABASE_SYNCHRONIZE),
     logging: parseBoolean(process.env.DATABASE_LOGGING),
   };
@@ -73,18 +81,16 @@ const buildDataSource = () => {
   });
 };
 
-let dataSource: DataSource | null = null;
+export const appDataSource = buildDataSource();
 let initPromise: Promise<DataSource> | null = null;
 
 export const getDataSource = async () => {
-  if (dataSource?.isInitialized) {
-    return dataSource;
+  if (appDataSource.isInitialized) {
+    return appDataSource;
   }
 
   if (!initPromise) {
-    dataSource = buildDataSource();
-    initPromise = dataSource.initialize().catch((error) => {
-      dataSource = null;
+    initPromise = appDataSource.initialize().catch((error) => {
       initPromise = null;
       throw error;
     });

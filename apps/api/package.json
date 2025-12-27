@@ -9,7 +9,8 @@
     "build": "tsc -p tsconfig.app.json",
     "deploy": "serverless deploy",
     "offline": "serverless offline",
-    "migration:generate": "NODE_ENV=local typeorm-ts-node-commonjs -d src/data-source.ts migration:generate"
+    "migration:generate": "NODE_ENV=local node scripts/typeorm-migration-generate.js",
+    "migration:run": "NODE_ENV=local node scripts/typeorm-migration-run.js"
   },
   "dependencies": {
     "@apollo/server": "^4.11.0",

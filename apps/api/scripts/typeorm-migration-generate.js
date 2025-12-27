@@ -1,0 +1,117 @@
+#!/usr/bin/env node
+'use strict';
+
+const fs = require('node:fs');
+const path = require('node:path');
+const { spawnSync } = require('node:child_process');
+const { config: loadEnv } = require('dotenv');
+
+const appRoot = path.resolve(__dirname, '..');
+
+const loadEnvFiles = () => {
+  const root = appRoot;
+  if (process.env.NODE_ENV === 'local') {
+    loadEnv({ path: path.join(root, '.env.local') });
+  }
+  loadEnv({ path: path.join(root, '.env') });
+};
+
+loadEnvFiles();
+
+const migrationsDir = process.env.DATABASE_MIGRATIONS_DIR || 'src/migrations';
+const args = process.argv.slice(2);
+const argsWithValues = new Set(['-t', '--timestamp', '-d', '--dataSource']);
+let outputArg;
+
+for (let i = 0; i < args.length; i += 1) {
+  const arg = args[i];
+  if (arg === '--') {
+    outputArg = args[i + 1];
+    break;
+  }
+  if (argsWithValues.has(arg)) {
+    i += 1;
+    continue;
+  }
+  if (!arg.startsWith('-')) {
+    outputArg = arg;
+    break;
+  }
+}
+
+if (!outputArg) {
+  console.error('Usage: npm run migration:generate -- <name|path> [typeorm options]');
+  process.exit(1);
+}
+
+const outputIndex = args.indexOf(outputArg);
+const beforeArgs = args.slice(0, outputIndex);
+const afterArgs = args.slice(outputIndex + 1);
+const looksLikePath = outputArg.includes('/') || outputArg.includes('\\');
+const resolvedMigrationsDir = path.isAbsolute(migrationsDir)
+  ? migrationsDir
+  : path.resolve(appRoot, migrationsDir);
+const outputPath = looksLikePath ? outputArg : path.join(resolvedMigrationsDir, outputArg);
+const nodePath = [path.join(appRoot, 'node_modules'), process.env.NODE_PATH]
+  .filter(Boolean)
+  .join(path.delimiter);
+
+const command =
+  process.platform === 'win32' ? 'typeorm-ts-node-commonjs.cmd' : 'typeorm-ts-node-commonjs';
+const result = spawnSync(
+  command,
+  ['-d', 'src/data-source.ts', 'migration:generate', ...beforeArgs, outputPath, ...afterArgs],
+  {
+    stdio: 'inherit',
+    cwd: appRoot,
+    env: {
+      ...process.env,
+      NODE_PATH: nodePath,
+      TS_NODE_PROJECT: process.env.TS_NODE_PROJECT || path.join(appRoot, 'tsconfig.app.json'),
+      TS_NODE_TRANSPILE_ONLY: process.env.TS_NODE_TRANSPILE_ONLY || '1',
+    },
+  },
+);
+
+if (result.status === 0) {
+  const outputExtension = args.includes('-o') || args.includes('--outputJs') ? '.js' : '.ts';
+  const schemaName = process.env.DATABASE_SCHEMA || 'public';
+  const resolvedOutputPath = path.isAbsolute(outputPath)
+    ? outputPath
+    : path.resolve(appRoot, outputPath);
+  const outputDir = path.dirname(resolvedOutputPath);
+  const outputBase = path.basename(resolvedOutputPath);
+
+  if (schemaName && fs.existsSync(outputDir)) {
+    const candidates = fs
+      .readdirSync(outputDir)
+      .filter((file) => file.endsWith(`-${outputBase}${outputExtension}`))
+      .map((file) => ({
+        file,
+        mtime: fs.statSync(path.join(outputDir, file)).mtimeMs,
+      }))
+      .sort((left, right) => right.mtime - left.mtime);
+
+    if (candidates.length > 0) {
+      const migrationFile = path.join(outputDir, candidates[0].file);
+      const schemaDeclaration = "const schema = process.env.DATABASE_SCHEMA || 'public';\n";
+      const escapedSchema = schemaName.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+      const schemaRegex = new RegExp(`"${escapedSchema}"\\.`, 'g');
+      let content = fs.readFileSync(migrationFile, 'utf8');
+
+      if (!content.includes('DATABASE_SCHEMA')) {
+        const importMatch = content.match(/^(?:import .*?\n)+/);
+        if (importMatch) {
+          content = content.replace(importMatch[0], `${importMatch[0]}\n${schemaDeclaration}`);
+        } else {
+          content = `${schemaDeclaration}\n${content}`;
+        }
+      }
+
+      content = content.replace(schemaRegex, '"${schema}".');
+      fs.writeFileSync(migrationFile, content);
+    }
+  }
+}
+
+process.exit(result.status ?? 1);
