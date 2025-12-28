@@ -1,20 +1,95 @@
+# "org" ensures this Service is used with the correct Serverless Framework Access Key.
+org: maxkudla
+# "app" enables Serverless Framework Dashboard features and sharing them with other Services.
+app: nx-starter-kit
 service: api
+
 frameworkVersion: '3'
+
+build:
+  esbuild: false
+#  include:
+#    - pg
 
 provider:
   name: aws
   runtime: nodejs22.x
-  region: us-east-1
-  stage: ${opt:stage, 'dev'}
+  region: ${opt:region, 'eu-west-1'}
+  stage: ${opt:stage, 'development'}
   memorySize: 256
-  timeout: 10
+  timeout: 180
+  stackName: ${self:app}-${self:service}-${self:provider.stage}
+
+  environment:
+    NODE_ENV: ${opt:stage, 'development'}
+    NODE_OPTIONS: --enable-source-maps
+
+    AWS_ACCOUNT_ID: ${env:AWS_ACCOUNT_ID}
+    AWS_NODEJS_CONNECTION_REUSE_ENABLED: 1
+
+    DATABASE_HOST: ${env:DATABASE_HOST}
+    DATABASE_PORT: ${env:DATABASE_PORT}
+    DATABASE_NAME: ${env:DATABASE_NAME}
+    DATABASE_USER: ${env:DATABASE_USER}
+    DATABASE_PASSWORD: ${env:DATABASE_PASSWORD}
+    DATABASE_SCHEMA: ${env:DATABASE_SCHEMA}
+    DATABASE_SSL: ${env:DATABASE_SSL}
+    DATABASE_SSL_REJECT_UNAUTHORIZED: ${env:DATABASE_SSL_REJECT_UNAUTHORIZED}
+    DATABASE_SYNCHRONIZE: ${env:DATABASE_SYNCHRONIZE}
+    DATABASE_LOGGING: ${env:DATABASE_LOGGING}
+    DATABASE_MIGRATIONS_DIRECTORY: ${env:DATABASE_MIGRATIONS_DIRECTORY}
+
+    JWT_SECRET: ${env:JWT_SECRET}
+    JWT_EXPIRES_IN_SECONDS: ${env:JWT_EXPIRES_IN_SECONDS}
+
+    DEBUG: ${env:DEBUG}
+
+  apiGateway:
+    binaryMediaTypes:
+      - 'multipart/form-data'
+    minimumCompressionSize: 1024 # Enable gzip compression for responses > 1 KB
+
+  iamRoleStatements:
+    - Effect: Allow
+      Action:
+        - lambda:InvokeFunction
+        - lambda:InvokeAsync
+      Resource: "*"
+
+    - Effect: Allow
+      Action:
+        - sqs:SendMessage
+      Resource: "*"
+
+  logs:
+    httpApi: true
+
   httpApi:
     payload: '2.0'
-  environment:
-    NODE_OPTIONS: --enable-source-maps
+    metrics: true
+    cors: true
 
 plugins:
   - serverless-offline
+  - serverless-dotenv-plugin
+#  - serverless-webpack
+#  - serverless-s3-sync
+#  - serverless-cloudfront-invalidate
+
+custom:
+  dotenv:
+    exclude:
+      - AWS_REGION
+      - AWS_ACCESS_KEY_ID
+      - AWS_SECRET_ACCESS_KEY
+
+  serverless-offline:
+    stage: local
+    httpPort: 4000
+    lambdaPort: 4002
+    noPrependStageInUrl: true
+    useChildProcesses: true
+    reloadHandler: true
 
 functions:
   graphql:
@@ -22,12 +97,11 @@ functions:
     events:
       - httpApi:
           path: /graphql
-          method: POST
-      - httpApi:
-          path: /graphql
-          method: GET
+          method: ANY
+          cors: true
 
 package:
+  individually: true
   patterns:
     - dist/**
     - node_modules/**
