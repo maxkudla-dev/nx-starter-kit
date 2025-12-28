@@ -1,4 +1,4 @@
-import { authResolvers } from "@nx-apollo-auth-library";
+import { authResolvers } from '../../../../libs/apollo-auth/src';
 
 export const resolvers = {
   ...authResolvers,

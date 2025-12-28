@@ -8,11 +8,13 @@
   "scripts": {
     "build": "tsc -p tsconfig.app.json",
     "deploy": "serverless deploy",
-    "offline": "serverless offline"
+    "offline": "serverless offline",
+    "migration:generate": "NODE_ENV=local typeorm-ts-node-commonjs -d src/data-source.ts migration:generate"
   },
   "dependencies": {
     "@apollo/server": "^4.11.0",
     "@as-integrations/aws-lambda": "^1.0.0",
+    "dotenv": "^16.4.5",
     "graphql": "^16.9.0",
     "reflect-metadata": "^0.2.2",
     "typeorm": "^0.3.0"
@@ -22,6 +24,7 @@
     "@types/node": "^22.13.0",
     "serverless": "^3.39.0",
     "serverless-offline": "^13.3.3",
+    "ts-node": "^10.9.2",
     "typescript": "^5.5.4"
   }
 }

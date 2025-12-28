@@ -1,4 +1,4 @@
-import { authTypeDefs } from '@nx-apollo-auth-library';
+import { authTypeDefs } from '../../../../libs/apollo-auth/src';
 
 const baseTypeDefs = /* GraphQL */ `
   type Query {

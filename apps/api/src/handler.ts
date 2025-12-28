@@ -3,6 +3,7 @@ import 'reflect-metadata';
 import { ApolloServer } from '@apollo/server';
 import { startServerAndCreateLambdaHandler } from '@as-integrations/aws-lambda';
 
+import { getDataSource } from './data-source';
 import { resolvers } from './graphql/resolvers';
 import { typeDefs } from './graphql/schema';
 
@@ -15,9 +16,7 @@ export const handler = startServerAndCreateLambdaHandler(
   server,
   {
     context: async () => ({
-      getDataSource: async () => {
-        throw new Error('Auth data source is not configured.');
-      },
+      getDataSource,
     }),
   }
 );
