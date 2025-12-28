@@ -1,12 +1,11 @@
 {
-  "extends": "./tsconfig.base.json",
+  "extends": "./tsconfig.app.json",
   "compilerOptions": {
-    "outDir": "./dist",
-    "rootDir": "../..",
-    "types": ["node", "aws-lambda"]
+    "allowJs": true
   },
   "include": [
     "src/**/*.ts",
+    "scripts/**/*.js",
     "../../libs/apollo-auth/src/**/*.ts",
     "../../libs/utils/src/**/*.ts"
   ]

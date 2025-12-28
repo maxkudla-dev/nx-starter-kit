@@ -5,15 +5,11 @@ app: nx-starter-kit
 service: api
 
 frameworkVersion: '3'
-
-build:
-  esbuild: false
-#  include:
-#    - pg
+useDotenv: true
 
 provider:
   name: aws
-  runtime: nodejs22.x
+  runtime: nodejs20.x
   region: ${opt:region, 'eu-west-1'}
   stage: ${opt:stage, 'development'}
   memorySize: 256
@@ -37,7 +33,7 @@ provider:
     DATABASE_SSL_REJECT_UNAUTHORIZED: ${env:DATABASE_SSL_REJECT_UNAUTHORIZED}
     DATABASE_SYNCHRONIZE: ${env:DATABASE_SYNCHRONIZE}
     DATABASE_LOGGING: ${env:DATABASE_LOGGING}
-    DATABASE_MIGRATIONS_DIRECTORY: ${env:DATABASE_MIGRATIONS_DIRECTORY}
+    DATABASE_MIGRATIONS_DIR: ${env:DATABASE_MIGRATIONS_DIR}
 
     JWT_SECRET: ${env:JWT_SECRET}
     JWT_EXPIRES_IN_SECONDS: ${env:JWT_EXPIRES_IN_SECONDS}
@@ -93,12 +89,12 @@ custom:
 
 functions:
   graphql:
+    name: ${self:app}-${self:service}-graphql-${self:provider.stage}
     handler: dist/apps/api/src/handler.handler
     events:
       - httpApi:
           path: /graphql
           method: ANY
-          cors: true
 
 package:
   individually: true

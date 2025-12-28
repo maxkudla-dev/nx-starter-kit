@@ -5,8 +5,7 @@ import { config as loadEnv } from 'dotenv';
 import { DataSource } from 'typeorm';
 import type { PostgresConnectionOptions } from 'typeorm/driver/postgres/PostgresConnectionOptions';
 
-import { Account } from '../../../libs/apollo-auth/src/entities/account';
-import { Profile } from '../../../libs/apollo-auth/src/entities/profile';
+import { Account, Profile } from '@nx-apollo-auth-library';
 
 const loadEnvFiles = () => {
   const root = process.cwd();

@@ -3,6 +3,7 @@
     "target": "ES2022",
     "module": "CommonJS",
     "moduleResolution": "node",
+    "baseUrl": ".",
     "strict": true,
     "esModuleInterop": true,
     "forceConsistentCasingInFileNames": true,
@@ -12,7 +13,9 @@
     "paths": {
       "@nx-apollo-auth-library": ["libs/apollo-auth/src/index.ts"],
       "@nx-utils-library": ["libs/utils/src/index.ts"],
-      "@nx-utils-library/*": ["libs/utils/src/*"]
+      "@nx-utils-library/*": ["libs/utils/src/*"],
+      "typeorm": ["apps/api/node_modules/typeorm"],
+      "typeorm/*": ["apps/api/node_modules/typeorm/*"]
     }
 
   }

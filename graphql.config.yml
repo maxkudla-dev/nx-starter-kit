@@ -1,0 +1,5 @@
+schema: "apps/api/src/graphql/schema.ts"
+documents: "apps/**/*.graphql"
+exclude:
+  - "dist/**"
+  - "node_modules/**"

@@ -1,4 +1,5 @@
 import 'reflect-metadata';
+import './register-paths';
 
 import { ApolloServer } from '@apollo/server';
 import { startServerAndCreateLambdaHandler } from '@as-integrations/aws-lambda';
