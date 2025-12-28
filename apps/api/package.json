@@ -8,6 +8,7 @@
   "scripts": {
     "build": "tsc -p tsconfig.app.json",
     "deploy": "serverless deploy",
+    "deploy:development": "serverless deploy --stage development",
     "offline": "serverless offline --stage local",
     "migration:generate": "NODE_ENV=local node scripts/typeorm-migration-generate.js",
     "migration:run": "NODE_ENV=local node scripts/typeorm-migration-run.js"
