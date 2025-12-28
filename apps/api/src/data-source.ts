@@ -1,18 +1,44 @@
 import 'reflect-metadata';
+import './register-paths';
 
+import fs from 'node:fs';
 import path from 'path';
-import { config as loadEnv } from 'dotenv';
+import dotenv from 'dotenv';
 import { DataSource } from 'typeorm';
 import type { PostgresConnectionOptions } from 'typeorm/driver/postgres/PostgresConnectionOptions';
 
 import { Account, Profile } from '@nx-apollo-auth-library';
 
 const loadEnvFiles = () => {
-  const root = process.cwd();
-  if (process.env.NODE_ENV === 'local') {
-    loadEnv({ path: path.join(root, '.env.local') });
+  const stage = process.env.STAGE || process.env.NODE_ENV || 'development';
+  const envFiles = [
+    '.env',
+    stage !== 'test' ? '.env.local' : null,
+    `.env.${stage}`,
+    `.env.${stage}.local`,
+  ].filter(Boolean);
+  const candidates = [process.cwd(), path.resolve(__dirname, '..')];
+  const root =
+    candidates.find((candidate) =>
+      envFiles.some((file) => fs.existsSync(path.join(candidate, file))),
+    ) || process.cwd();
+  const uniqueFiles = [...new Set(envFiles)];
+  const merged: Record<string, string> = {};
+
+  for (const file of uniqueFiles) {
+    const fullPath = path.join(root, file);
+    if (!fs.existsSync(fullPath)) {
+      continue;
+    }
+    Object.assign(merged, dotenv.parse(fs.readFileSync(fullPath)));
   }
-  loadEnv({ path: path.join(root, '.env') });
+
+  for (const [key, value] of Object.entries(merged)) {
+    const currentValue = process.env[key];
+    if (currentValue === undefined || currentValue === '') {
+      process.env[key] = value;
+    }
+  }
 };
 
 loadEnvFiles();
@@ -39,7 +65,7 @@ const buildDataSource = () => {
   const rejectUnauthorized = parseBoolean(process.env.DATABASE_SSL_REJECT_UNAUTHORIZED, true);
   const ssl = sslEnabled ? { rejectUnauthorized } : undefined;
   const schema = process.env.DATABASE_SCHEMA ?? 'public';
-  const migrationsDir = process.env.DATABASE_MIGRATIONS_DIR ?? 'src/migrations';
+  const migrationsDir = process.env.DATABASE_MIGRATIONS_DIR ?? 'migrations';
   const migrationsPath = path.isAbsolute(migrationsDir)
     ? migrationsDir
     : path.join(root, migrationsDir);

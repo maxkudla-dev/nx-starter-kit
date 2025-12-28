@@ -6,12 +6,11 @@
     "node": ">=22"
   },
   "scripts": {
-    "build": "tsc -p tsconfig.app.json",
-    "deploy": "serverless deploy",
-    "deploy:development": "serverless deploy --stage development",
-    "offline": "serverless offline --stage local",
+    "deploy": "node scripts/serverless-with-dotenv.js deploy",
+    "deploy:development": "node scripts/serverless-with-dotenv.js deploy --stage development",
+    "offline": "node scripts/serverless-with-dotenv.js offline --stage local",
     "migration:generate": "NODE_ENV=local node scripts/typeorm-migration-generate.js",
-    "migration:run": "NODE_ENV=local node scripts/typeorm-migration-run.js"
+    "migration:run": "NODE_ENV=development node scripts/typeorm-migration-run.js"
   },
   "dependencies": {
     "@apollo/server": "^4.11.0",

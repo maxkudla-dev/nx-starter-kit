@@ -1,18 +1,39 @@
 #!/usr/bin/env node
 'use strict';
 
+const fs = require('node:fs');
 const path = require('node:path');
 const { spawnSync } = require('node:child_process');
-const { config: loadEnv } = require('dotenv');
+const dotenv = require('dotenv');
 
 const appRoot = path.resolve(__dirname, '..');
 
 const loadEnvFiles = () => {
   const root = appRoot;
-  if (process.env.NODE_ENV === 'local') {
-    loadEnv({ path: path.join(root, '.env.local') });
+  const stage = process.env.STAGE || process.env.NODE_ENV || 'development';
+  const envFiles = [
+    '.env',
+    stage !== 'test' ? '.env.local' : null,
+    `.env.${stage}`,
+    `.env.${stage}.local`,
+  ].filter(Boolean);
+  const uniqueFiles = [...new Set(envFiles)];
+  const merged = {};
+
+  for (const file of uniqueFiles) {
+    const fullPath = path.join(root, file);
+    if (!fs.existsSync(fullPath)) {
+      continue;
+    }
+    Object.assign(merged, dotenv.parse(fs.readFileSync(fullPath)));
   }
-  loadEnv({ path: path.join(root, '.env') });
+
+  for (const [key, value] of Object.entries(merged)) {
+    const currentValue = process.env[key];
+    if (currentValue === undefined || currentValue === '') {
+      process.env[key] = value;
+    }
+  }
 };
 
 loadEnvFiles();

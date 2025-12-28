@@ -1,10 +1,11 @@
 {
-  "extends": "./tsconfig.app.json",
+  "extends": "./tsconfig.base.json",
   "compilerOptions": {
     "allowJs": true
   },
   "include": [
     "src/**/*.ts",
+    "migrations/**/*.ts",
     "scripts/**/*.js",
     "../../libs/apollo-auth/src/**/*.ts",
     "../../libs/utils/src/**/*.ts"

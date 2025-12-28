@@ -2,7 +2,7 @@
 org: maxkudla
 # "app" enables Serverless Framework Dashboard features and sharing them with other Services.
 app: nx-starter-kit
-service: api
+service: nx-starter-kit-api
 
 frameworkVersion: '3'
 useDotenv: true
@@ -13,15 +13,12 @@ provider:
   region: ${opt:region, 'eu-west-1'}
   stage: ${opt:stage, 'development'}
   memorySize: 256
-  timeout: 180
-  stackName: ${self:app}-${self:service}-${self:provider.stage}
+  timeout: 30
+  stackName: ${self:service}-${self:provider.stage}
 
   environment:
     NODE_ENV: ${opt:stage, 'development'}
     NODE_OPTIONS: --enable-source-maps
-
-    AWS_ACCOUNT_ID: ${env:AWS_ACCOUNT_ID}
-    AWS_NODEJS_CONNECTION_REUSE_ENABLED: 1
 
     DATABASE_HOST: ${env:DATABASE_HOST}
     DATABASE_PORT: ${env:DATABASE_PORT}
@@ -89,7 +86,7 @@ custom:
 
 functions:
   graphql:
-    name: ${self:app}-${self:service}-graphql-${self:provider.stage}
+    name: ${self:service}-graphql-${self:provider.stage}
     handler: dist/apps/api/src/handler.handler
     events:
       - httpApi:
